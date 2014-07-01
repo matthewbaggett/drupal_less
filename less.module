@@ -1,0 +1,60 @@
+<?php
+
+require_once("lib/less.php/Cache.php");
+require_once("lib/less.php/Less.php");
+require_once("lib/less.php/Version.php");
+
+function less_css_alter(&$css){
+  less_check_for_less($css);
+}
+
+function less_check_for_less(&$css){
+
+  foreach($css as $key => &$css_elem){
+    if(isset($css_elem['data'])){
+      if(pathinfo($css_elem['data'], PATHINFO_EXTENSION) == 'less'){
+        $time_start = microtime(true);
+        $input = $css_elem['data'];
+        $output = "sites/default/files/less-cache/" . pathinfo($css_elem['data'], PATHINFO_FILENAME) . ".css";
+        try{
+          if(!file_exists(dirname($output))){
+            mkdir(dirname($output), 0777, true);
+          }
+
+          if(!file_exists($output) || filemtime($output) <= filemtime($input)){
+            if(file_exists($output)){
+              unlink($output);
+            }
+            $parser = new Less_Parser();
+            //$css_root = rtrim(SERVER_ROOT_PATH,"/") . "/" . dirname($input) . "/";
+            $css_root = "/" . dirname($input) . "/";
+            $parser->parseFile($input, $css_root);
+            $css_output = $parser->getCss();
+
+            file_put_contents($output, $css_output);
+          }
+
+          $css_elem['data'] = rtrim(SERVER_ROOT_PATH, "/") . "/{$output}";
+          //if(stripos($css_elem['data'], "bootstrap") !== false){
+          //  Kint::dump($css_elem);
+          //  Kint::dump($css);
+          //}
+          //die("HERP");
+          $css_elem['data'] = $output;
+
+          $css[$css_elem['data']] = $css_elem;
+          unset($css[$key]);
+        }catch(Exception $e){
+          die("Less compile error: {$e->getMessage()}");
+        }
+        $time_end = microtime(true);
+        $time_exec = number_format($time_end - $time_start, 3);
+        if($time_exec > 0.01){
+          if(user_access("access devel information") && function_exists('pt_log')){
+            pt_log("SPEED: {$time_exec}: LESS Generated " . pathinfo($output, PATHINFO_BASENAME));
+          }
+        }
+      }
+    }
+  }
+}
