@@ -14,6 +14,12 @@ function less_get_cache_path(){
 
 function less_check_for_less(&$css){
 
+  $less_cache_disabled = (defined('LESS_DISABLE_CACHE') && LESS_DISABLE_CACHE == true);
+
+  if($less_cache_disabled){
+    drupal_set_message("WARNING: LESS_DISABLE_CACHE is set to true! LESS cache disabled! This is a huge performance hit!");
+  }
+
   foreach($css as $key => &$css_elem){
     if(isset($css_elem['data'])){
       if(pathinfo($css_elem['data'], PATHINFO_EXTENSION) == 'less'){
@@ -24,7 +30,7 @@ function less_check_for_less(&$css){
             mkdir(dirname($output), 0777, true);
           }
 
-          if(!file_exists($output) || filemtime($output) <= filemtime($input)){
+          if(!file_exists($output) || filemtime($output) <= filemtime($input) || $less_cache_disabled){
             if(file_exists($output)){
               unlink($output);
             }
