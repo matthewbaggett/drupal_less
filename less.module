@@ -17,7 +17,7 @@ function less_check_for_less(&$css){
   $less_cache_disabled = (defined('LESS_DISABLE_CACHE') && LESS_DISABLE_CACHE == true);
 
   if($less_cache_disabled){
-    drupal_set_message("WARNING: LESS_DISABLE_CACHE is set to true! LESS cache disabled! This is a huge performance hit!");
+    drupal_set_message("WARNING: LESS_DISABLE_CACHE is set to true! LESS cache disabled! This is a huge performance hit!", "error");
   }
 
   foreach($css as $key => &$css_elem){
@@ -49,7 +49,7 @@ function less_check_for_less(&$css){
           $css[$css_elem['data']] = $css_elem;
           unset($css[$key]);
         }catch(Exception $e){
-          throw new Exception("Less compile error: {$e->getMessage()}");
+          drupal_set_message("WARNING: Less compile exception: {$e->getMessage()}", "error");
         }
       }
     }
