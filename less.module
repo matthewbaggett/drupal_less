@@ -30,7 +30,7 @@ function less_check_for_less(&$css){
             mkdir(dirname($output), 0777, true);
           }
 
-          if(!file_exists($output) || filemtime($output) <= filemtime($input) || $less_cache_disabled){
+          if(!file_exists($output) || file_exists($input) && file_exists($output) && filemtime($output) <= filemtime($input) || $less_cache_disabled){
             if(file_exists($output)){
               unlink($output);
             }
